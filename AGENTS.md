@@ -1,73 +1,67 @@
-# AGENTS.md — Codex instructions
+# AGENTS.md — Codex向けの開発方針
 
-This repository is a reusable Windows desktop application template. The product goal is: **keep web-development ergonomics, ship a real desktop app, and require no localhost server in production**.
+このリポジトリは、再利用可能なWindowsデスクトップアプリのひな形です。Web開発の作りやすさを保ち、製品版でlocalhostサーバーを必要としないデスクトップアプリとして配布します。
 
-## Architecture contract
+## 構成
 
-- Tauri 2 is the desktop shell.
-- React + TypeScript + Vite is the UI stack.
-- shadcn/ui conventions + Tailwind CSS are the default UI approach.
-- pnpm is the package manager.
-- Rust is for native integration, lifecycle, tray, privileged operations, and logic that should not live in the WebView.
-- SQLite is the default structured local database.
-- Tauri Store is the default simple settings store.
-- Do not introduce Electron, Next.js, an Express/Fastify server, or a production localhost dependency unless the user explicitly asks for it.
+- デスクトップ部分はTauri 2、画面はReact / TypeScript / Viteを使用する。
+- UIはshadcn/uiの設計方針とTailwind CSSに従い、部品を`src/components/ui`に置く。
+- パッケージ管理はpnpmを使用する。
+- ネイティブ連携、ライフサイクル、トレイ、権限を要する処理はRustに置く。
+- 構造化データはSQLite、簡単な設定はTauri Storeに保存する。
+- ユーザーが明示的に依頼しない限り、Electron、Next.js、Express / Fastify、製品版のlocalhost依存を導入しない。
 
-## Desktop behavior
+## デスクトップの動作
 
-- `pnpm desktop` starts development mode.
-- `pnpm build` must create Windows installers through Tauri.
-- The close button hides the app to the system tray by default. Tray > Quit exits.
-- Keep the app useful with keyboard + mouse and at normal Windows DPI scaling.
-- Prefer Windows-friendly window sizes and avoid mobile-first layouts unless the task requires them.
+- `pnpm desktop`で開発モードを起動する。
+- `pnpm build`でTauriを使ったWindowsインストーラーを生成する。
+- 閉じるボタンは既定でトレイに格納する。トレイの「終了」で終了する。
+- キーボードとマウス、Windowsの一般的なDPI設定で操作できるようにする。
+- Windowsで使いやすいウィンドウサイズを優先する。依頼がない限りモバイル向けの構成にしない。
 
-## Security contract
+## 安全性
 
-- Tauri capabilities are deny-by-default. Add only the specific permissions needed for the requested feature.
-- Shell process execution is **not** enabled by default. External URLs use the focused Tauri Opener plugin. If command execution is required, add the Shell plugin deliberately and define a narrow allowlist; never enable arbitrary shell strings.
-- Clipboard read access is not enabled by default. Write-text is enabled only for the starter smoke test.
-- Do not put secrets in frontend source, Vite environment variables, localStorage, or committed config.
-- Validate paths, URLs, command arguments, and data crossing the JS/Rust boundary.
+- Tauriの権限は必要なものだけを明示的に追加する。
+- シェル実行は既定で有効にしない。外部URLはOpenerを使用する。
+- コマンド実行が必要ならShellプラグインを追加し、狭い許可リストを設定する。任意のシェル文字列を許可しない。
+- クリップボード読み取りは既定で無効。テキスト書き込みは初期画面の動作確認で使用する。
+- 秘密情報をフロントエンド、Vite環境変数、localStorage、コミット対象の設定に置かない。
+- JavaScript / Rust間を渡るパス、URL、コマンド引数、データを検証する。
 
-## Data
+## データ
 
-- Use Tauri Store for preferences and lightweight configuration.
-- Use SQLite for entities, history, searchable records, relationships, or data that may grow.
-- Put schema initialization/migrations in a dedicated module once the application gains real tables.
-- Never silently delete user data during migrations.
+- 設定や軽量な構成情報はTauri Storeに保存する。
+- エンティティ、履歴、検索対象、関連データ、増加するデータはSQLiteに保存する。
+- アプリに実際のテーブルを追加する際は、スキーマの初期化と移行を専用モジュールに分離する。
+- データ移行でユーザーデータを黙って削除しない。
 
-## UI rules
+## 画面と依存関係
 
-- Keep the application visually restrained and desktop-oriented.
-- Use shadcn/ui-style components under `src/components/ui`.
-- Prefer a small number of clear surfaces over dashboard-card overload.
-- Support dark mode via system preference by default.
-- Avoid gradients, excessive animation, giant headings, and marketing-site patterns unless requested.
-- Keep important actions visible without requiring a browser bookmark or URL navigation.
+- 控えめな見た目とデスクトップでの使いやすさを優先する。
+- 画面をカードで埋め尽くさず、操作対象を分かりやすく整理する。
+- 既定でOSのダークモード設定に従う。
+- 依頼がない限りグラデーション、過剰なアニメーション、巨大な見出し、宣伝ページ風の表現を避ける。
+- 主要な操作を画面に表示し、ブラウザのブックマークやURL入力を不要にする。
+- デスクトップ機能は公式Tauriプラグインを優先する。
+- 既存のAPIで実現できる場合は依存関係を増やさない。
+- ReactとRustの責務を分け、理由なく同じ状態を二重管理しない。
 
-## Dependency rules
+## 作業完了前の確認
 
-- Prefer official Tauri plugins for desktop capabilities.
-- Avoid adding a dependency when the platform/API already provides the feature cleanly.
-- Keep React/Rust concerns separated; do not reimplement the same state on both sides without a reason.
+1. `pnpm typecheck`と`pnpm test`を実行する。
+2. 画面変更では`pnpm build:web`を実行する。
+3. Tauri / Rust / 設定 / 権限の変更では、RustとWindowsの配布環境が利用できる場合に`pnpm build`を実行する。
+4. 製品版に新しいHTTPサーバーが導入されていないことを確認する。
+5. `src-tauri/capabilities/default.json`に不要な権限がないか確認する。
+6. セットアップ、コマンド、永続化、配布、構成を変更した場合はREADMEも更新する。
+7. 実行できなかった検証は、未検証として明示する。
 
-## Before finishing a change
-
-1. Run `pnpm typecheck`.
-2. Run `pnpm build:web` for UI-only changes.
-3. Run `pnpm build` for Tauri/Rust/config/capability changes when the environment supports Rust + Windows packaging.
-4. Verify no new production HTTP server was introduced.
-5. Review `src-tauri/capabilities/default.json` for unnecessary permissions.
-6. Update README when setup, scripts, persistence, packaging, or architecture changed.
-
-## When starting a new app from this template
-
-Run:
+## このひな形から新しいアプリを作る
 
 ```powershell
-pnpm rename-app -- --name "My Tool" --identifier "dev.example.mytool"
-pnpm install
+pnpm install --frozen-lockfile
+pnpm rename-app -- --name "マイツール" --identifier "dev.example.mytool"
 pnpm desktop
 ```
 
-Then replace the starter smoke-test UI with the requested product while preserving the architecture/security contract unless the task explicitly requires otherwise.
+初期画面を依頼された製品の画面に置き換える。ユーザーが変更を求めない限り、上記の構成と安全性を維持する。

@@ -1,7 +1,7 @@
 [package]
 name = "windows-app-template"
 version = "0.1.0"
-description = "Codex-ready Windows desktop app template"
+description = "Codex向けWindowsデスクトップアプリのひな形"
 authors = ["ham0806"]
 edition = "2021"
 
@@ -14,7 +14,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
-tauri-plugin-autostart = "2"
+tauri-plugin-autostart = "~2.6"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-opener = "2"

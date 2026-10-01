@@ -20,18 +20,24 @@ pub fn run() {
                 None,
             ))?;
 
-            let show = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
-            let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let show = MenuItem::with_id(app, "show", "表示", true, None::<&str>)?;
+            let quit = MenuItem::with_id(app, "quit", "終了", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show, &quit])?;
 
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().expect("app icon").clone())
-                .tooltip("Windows App Template")
+                .tooltip(
+                    app.config()
+                        .product_name
+                        .as_deref()
+                        .unwrap_or("Windowsアプリ"),
+                )
                 .menu(&menu)
                 .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => {
                         if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.unminimize();
                             let _ = window.show();
                             let _ = window.set_focus();
                         }
@@ -45,11 +51,11 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
-                // Desktop-tool default: close button hides to tray. Use tray > Quit to exit.
+                // 閉じるボタンでトレイに格納する。終了はトレイメニューから行う。
                 api.prevent_close();
                 let _ = window.hide();
             }
         })
         .run(tauri::generate_context!())
-        .expect("error while running Tauri application");
+        .expect("Tauriアプリの実行に失敗しました");
 }
