@@ -1,4 +1,4 @@
-# Repository instructions
+# リポジトリの開発方針
 
-Read `AGENTS.md` before changing architecture, security permissions, Tauri capabilities, packaging, or persistence.
-Prefer extending the existing React/Tauri structure over adding another framework or local web server.
+構成、権限、Tauriの機能、配布、永続化を変更する前に`AGENTS.md`を読んでください。
+既存のReact / Tauri構成を拡張することを優先し、別のフレームワークやローカルWebサーバーを導入しないでください。

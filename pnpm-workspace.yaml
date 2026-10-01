@@ -1,2 +1,7 @@
 packages:
   - .
+# pnpm 10と11以降で、esbuildのインストール処理だけを許可する。
+onlyBuiltDependencies:
+  - esbuild
+allowBuilds:
+  esbuild: true
